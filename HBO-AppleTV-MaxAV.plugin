@@ -1,7 +1,7 @@
-#!name = HBO Apple TV + 最高画质与音频
-#!desc = 播放申请使用 Apple TV 身份；主清单只保留最高视频档位及优先音频组（Atmos、EAC3、AC3、AAC）。
+#!name = iPad HBO Max 最高画质修复
+#!desc = 针对 iPad HBO Max 未自动选择最高画质：改写播放身份并锁定服务器提供的最高视频档位，音频优先 Atmos。
 #!author = sanyue025-create
-#!version = 1.0.0
+#!version = 1.0.1
 
 [Script]
 http-request ^https:\/\/default\.any-any\.prd\.api\.discomax\.com\/playback-orchestrator\/any\/playback-orchestrator\/v1\/playbackInfo(?:\?|$) script-path=https://raw.githubusercontent.com/sanyue025-create/hbo-appletv-maxav-loon/main/hbo-appletv.request.js, requires-body=1, timeout=10, tag=HBO AppleTV 身份实验
