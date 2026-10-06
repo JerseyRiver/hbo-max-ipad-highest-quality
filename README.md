@@ -55,4 +55,4 @@ Normal logs include the device model and selected video/audio formats, but not r
 
 ## License
 
-MIT. See [LICENSE](LICENSE). This project is not affiliated with HBO, Apple or Loon.
+Created by **JerseyRiver**. MIT. See [LICENSE](LICENSE). This project is not affiliated with HBO, Apple or Loon.

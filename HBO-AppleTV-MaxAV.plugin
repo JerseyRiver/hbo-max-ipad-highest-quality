@@ -1,6 +1,6 @@
 #!name = HBO Max Highest Quality on iPad
 #!desc = For HBO Max on iPad when the app does not select the highest quality. Rewrites playback identity, locks the highest available video tier and prefers Dolby Atmos audio.
-#!author = sanyue025-create
+#!author = JerseyRiver
 #!version = 1.0.2
 
 [Script]
