@@ -9,7 +9,7 @@ If the playlist includes 4K, the plugin selects 4K. If the highest available tie
 Add this URL in Loon's plugin settings. Only one plugin is needed; the scripts are loaded automatically:
 
 ```
-https://raw.githubusercontent.com/JerseyRiver/hbo-appletv-maxav-loon/main/HBO-AppleTV-MaxAV.plugin
+https://raw.githubusercontent.com/JerseyRiver/hbo-max-ipad-highest-quality/main/HBO-Max-iPad-Highest-Quality.plugin
 ```
 
 1. Enable scripting and MITM in Loon. Install and trust the MITM certificate.
@@ -51,7 +51,7 @@ For a local installation, place both `.js` files in iCloud Drive → Loon → Sc
 
 The published files contain no traffic captures, account tokens, subscription details, personal server configuration or private keys. The scripts add no network requests, analytics or uploads. They only process the existing HBO requests and playlists inside Loon.
 
-Normal logs include the device model and selected video/audio formats, but not request bodies, playback URLs or DRM data. Errors produce a generic message. The log prefixes `[HBO AppleTV experiment]` and `[HBO MaxAV]` correspond to the two processing steps.
+Normal logs include the device model and selected video/audio formats, but not request bodies, playback URLs or DRM data. Errors produce a generic message. The log prefixes `[HBO iPad Playback]` and `[HBO iPad Quality]` correspond to the two processing steps.
 
 ## License
 
