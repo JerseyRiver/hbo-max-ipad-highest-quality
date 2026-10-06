@@ -1,11 +1,11 @@
 #!name = HBO Max Highest Quality on iPad
 #!desc = For HBO Max on iPad when the app does not select the highest quality. Rewrites playback identity, locks the highest available video tier and prefers Dolby Atmos audio.
 #!author = JerseyRiver
-#!version = 1.0.2
+#!version = 1.0.3
 
 [Script]
-http-request ^https:\/\/default\.any-any\.prd\.api\.discomax\.com\/playback-orchestrator\/any\/playback-orchestrator\/v1\/playbackInfo(?:\?|$) script-path=https://raw.githubusercontent.com/sanyue025-create/hbo-appletv-maxav-loon/main/hbo-appletv.request.js, requires-body=1, timeout=10, tag=HBO Apple TV Identity
-http-response ^https:\/\/[^/?#]+\/(?:[^?#]*\/)?hls\.m3u8(?:\?|$) script-path=https://raw.githubusercontent.com/sanyue025-create/hbo-appletv-maxav-loon/main/hbo-max-av.response.js, requires-body=1, timeout=10, tag=HBO Highest Video and Audio
+http-request ^https:\/\/default\.any-any\.prd\.api\.discomax\.com\/playback-orchestrator\/any\/playback-orchestrator\/v1\/playbackInfo(?:\?|$) script-path=https://raw.githubusercontent.com/JerseyRiver/hbo-appletv-maxav-loon/main/hbo-appletv.request.js, requires-body=1, timeout=10, tag=HBO Apple TV Identity
+http-response ^https:\/\/[^/?#]+\/(?:[^?#]*\/)?hls\.m3u8(?:\?|$) script-path=https://raw.githubusercontent.com/JerseyRiver/hbo-appletv-maxav-loon/main/hbo-max-av.response.js, requires-body=1, timeout=10, tag=HBO Highest Video and Audio
 
 [MITM]
 hostname = default.any-any.prd.api.discomax.com, *.e.hbo, *.media.max.com, *.media.h264.io

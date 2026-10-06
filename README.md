@@ -9,7 +9,7 @@ If the playlist includes 4K, the plugin selects 4K. If the highest available tie
 Add this URL in Loon's plugin settings. Only one plugin is needed; the scripts are loaded automatically:
 
 ```
-https://raw.githubusercontent.com/sanyue025-create/hbo-appletv-maxav-loon/main/HBO-AppleTV-MaxAV.plugin
+https://raw.githubusercontent.com/JerseyRiver/hbo-appletv-maxav-loon/main/HBO-AppleTV-MaxAV.plugin
 ```
 
 1. Enable scripting and MITM in Loon. Install and trust the MITM certificate.
