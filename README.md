@@ -1,56 +1,58 @@
-# iPad HBO Max 最高画质修复 · Loon 插件
+# HBO Max Highest Quality on iPad — Loon Plugin
 
-针对 iPad 上 HBO Max 客户端没有自动选择片源最高画质、持续停留在较低清晰度的问题，通过 Loon 改写播放申请和主播放清单，让播放器使用服务器提供的最高视频档位，同时优先选择 Atmos 等音频格式。
+A Loon plugin for HBO Max on iPad when the app does not automatically select the highest available video quality. It rewrites the playback device identity and filters the HLS master playlist so the player uses the highest video tier returned by the server, with a preferred audio group such as Dolby Atmos.
 
-有 4K 档位就选择 4K；服务器提供的最高档位为 1080p 时就选择 1080p。目标是使用每部片源可用的最高画质，而不是固定请求某一种分辨率。
+If the playlist includes 4K, the plugin selects 4K. If the highest available tier is 1080p, it selects 1080p. It does not add quality tiers that the server has not provided.
 
-## 安装
+## Installation
 
-在 Loon 的插件页面添加以下地址，只需启用这一个插件，无需手动复制脚本：
+Add this URL in Loon's plugin settings. Only one plugin is needed; the scripts are loaded automatically:
 
 ```
 https://raw.githubusercontent.com/sanyue025-create/hbo-appletv-maxav-loon/main/HBO-AppleTV-MaxAV.plugin
 ```
 
-1. 开启 Loon 脚本与 MITM，安装并信任 MITM 证书。
-2. 关闭其他改写 HBO 播放申请或主清单的插件，避免重复处理。如果装过本项目之前拆分的 Apple TV 身份、最高视频/音频或 StartupTest 插件，也请关闭。
-3. 彻底退出 HBO Max App，再重新打开播放。
+1. Enable scripting and MITM in Loon. Install and trust the MITM certificate.
+2. Disable other plugins that rewrite HBO playback requests or master playlists. If you installed the earlier separate Apple TV identity, video/audio quality, or StartupTest plugins, disable them too.
+3. Fully quit HBO Max and reopen it before starting playback.
 
-## 如何解决
+## How it works
 
-插件按播放流程执行两个步骤：
+The plugin runs two steps during playback:
 
-1. **改写播放申请。** 将 iPad 发出的指定 `playbackInfo` 请求中的设备身份改为 Apple TV / tvOS，尝试让服务器提供更多视频档位。保留原有账号、会话和 DRM 数据。
-2. **筛选主播放清单。** 在服务器返回的 HLS 主清单中只保留最高视频档位，让播放器无法再切换到清单中较低的视频档位；同时保留一个优先音频组及其语言、口述影像和相关字幕。
+1. **Rewrite the playback request.** For the specified `playbackInfo` endpoint, change the iPad device identity to Apple TV / tvOS to attempt to obtain additional video tiers. Existing account, session and DRM data are preserved.
+2. **Filter the master playlist.** Keep one video variant at the highest available resolution, together with one preferred audio group and its languages, audio descriptions and referenced subtitle groups. Removing lower video tiers prevents the player from selecting them.
 
-这两步由同一个插件自动调用两个脚本完成。插件不修改播放器代码，也不伪造网速。
+One plugin invokes two scripts at their respective stages. It does not modify player code or fake a bandwidth measurement.
 
-## 视频和音频选择
+## Video and audio selection
 
-- 视频先选择最大像素数；同分辨率优先 Dolby Vision Profile 5 → HEVC HDR → HEVC SDR → AVC，再选择平均码率最高的记录。
-- 在选定视频格式下，音频组优先 Atmos → EAC3（杜比数字 Plus）→ AC3（杜比数字）→ AAC。组内保留原有语言，其他组独有的语言可能不再可选。
-- 保留选中记录的原始播放地址、会话密钥和字幕组，不改字幕默认语言。
+- Video: highest pixel count first. At the same resolution, prefer Dolby Vision Profile 5 → HEVC HDR → HEVC SDR → AVC, then select the variant with the highest average bitrate.
+- Audio: within the selected video format, prefer Dolby Atmos → EAC3 (Dolby Digital Plus) → AC3 (Dolby Digital) → AAC. Languages in the selected group are retained; languages exclusive to other groups may no longer be available.
+- Original playback URLs, session keys and referenced subtitle groups are preserved. Default subtitle language is not changed.
 
-## 使用范围与限制
+Audio selection is a format preference, not a guarantee of better perceived sound or lossless audio.
 
-适用于 iPad 上 HBO Max 客户端的指定播放接口和 HLS 主清单。其他设备、客户端版本和地区未保证兼容；Apple TV 身份改写属于实验性行为。
+## Compatibility and limitations
 
-插件只能选择服务器实际提供的档位，不能把 1080p 片源变成 4K，也不能绕过订阅权限、DRM 或设备本身的播放能力。仍需有效订阅及相应片源。
+This plugin targets the specified HBO Max playback endpoint and HLS master playlists on iPad. Compatibility with other devices, app versions and regions is not guaranteed. The Apple TV identity rewrite is experimental.
 
-锁定最高档位会失去低画质缓冲回退，可能延长启动、拖动等待或造成卡顿。音频按格式优先，有 Atmos 但客户端无法播放时不会自动回退到 AAC，可能无声或报错。因此本项目不保证解决所有低清晰度或缓冲问题。
+An eligible subscription, supported content and a compatible device are still required. The plugin cannot turn a 1080p source into 4K, unlock subscription entitlements or bypass DRM.
 
-关闭插件、彻底退出 App 后重新打开，即可恢复原来的播放选择。
+Locking the highest tier removes the player's lower-quality fallback and can increase startup time, seeking delays or buffering. If Atmos is available but the client cannot play it, the plugin does not automatically fall back to AAC; playback may fail or have no sound. This is a workaround, not a guaranteed fix for every low-quality playback or buffering issue.
 
-## 本地安装
+To restore normal quality selection, disable the plugin, fully quit the app and reopen it.
 
-本地插件文件使用相对脚本路径；将两个 `.js` 文件放入 iCloud Drive → Loon → Script，再导入本地 `.plugin` 文件。GitHub 上的 `.plugin` 使用在线脚本地址。
+## Manual installation
 
-## 隐私
+For a local installation, place both `.js` files in iCloud Drive → Loon → Script and import a local `.plugin` file that uses relative script paths. The `.plugin` published in this repository uses online script URLs.
 
-公开文件不包含抓包、账号令牌、订阅信息、个人服务器配置或密钥。脚本没有新增网络请求、统计或上传功能，只在 Loon 内处理原本发往 HBO 的请求与清单。
+## Privacy
 
-正常日志包含设备型号、所选视频和音频格式，不输出请求体、播放地址或 DRM 数据；异常时仅输出通用提示。日志前缀为 `[HBO AppleTV experiment]` 和 `[HBO MaxAV]`，分别对应两个处理步骤。
+The published files contain no traffic captures, account tokens, subscription details, personal server configuration or private keys. The scripts add no network requests, analytics or uploads. They only process the existing HBO requests and playlists inside Loon.
 
-## 许可证
+Normal logs include the device model and selected video/audio formats, but not request bodies, playback URLs or DRM data. Errors produce a generic message. The log prefixes `[HBO AppleTV experiment]` and `[HBO MaxAV]` correspond to the two processing steps.
 
-MIT，详见 [LICENSE](LICENSE)。本项目与 HBO、Apple、Loon 无隶属关系。
+## License
+
+MIT. See [LICENSE](LICENSE). This project is not affiliated with HBO, Apple or Loon.
