@@ -18,12 +18,13 @@ https://raw.githubusercontent.com/JerseyRiver/hbo-max-ipad-highest-quality/main/
 
 ## How it works
 
-The plugin runs two steps during playback:
+The plugin runs three steps during playback:
 
 1. **Rewrite the playback request.** For the specified `playbackInfo` endpoint, change the iPad device identity to Apple TV / tvOS to attempt to obtain additional video tiers. Existing account, session and DRM data are preserved.
-2. **Filter the master playlist.** Keep one video variant at the highest available resolution, together with one preferred audio group and its languages, audio descriptions and referenced subtitle groups. Removing lower video tiers prevents the player from selecting them.
+2. **Use the server-provided main-only fallback.** When `playbackInfo` includes a complete, validated HLS fallback containing the same main video, use that response instead of the concatenated promo/recap playlist. Its manifest, zero-based chapter timeline, DRM, CDN and SSAI metadata are kept together. This avoids manual jumps across the promo and recap boundaries. It also removes the separate recap from playback. If the fallback is missing or fails validation, the original response is retained.
+3. **Filter the master playlist.** Keep one video variant at the highest available resolution, together with one preferred audio group and its languages, audio descriptions and referenced subtitle groups. Removing lower video tiers prevents the player from selecting them.
 
-One plugin invokes two scripts at their respective stages. It does not modify player code or fake a bandwidth measurement.
+One plugin invokes three scripts at their respective stages. It does not modify player code or fake a bandwidth measurement.
 
 ## Video and audio selection
 
@@ -39,19 +40,19 @@ This plugin targets the specified HBO Max playback endpoint and HLS master playl
 
 An eligible subscription, supported content and a compatible device are still required. The plugin cannot turn a 1080p source into 4K, unlock subscription entitlements or bypass DRM.
 
-Locking the highest tier removes the player's lower-quality fallback and can increase startup time, seeking delays or buffering. If Atmos is available but the client cannot play it, the plugin does not automatically fall back to AAC; playback may fail or have no sound. This is a workaround, not a guaranteed fix for every low-quality playback or buffering issue.
+Locking the highest tier removes the player's lower-quality fallback and can increase startup time, seeking delays or buffering. If Atmos is available but the client cannot play it, the plugin does not automatically fall back to AAC; playback may fail or have no sound. The main-only fallback is an experimental workaround for promo/recap skip stalls; it has been checked against captured responses, but live playback and the quality tiers available in that fallback still require verification. This is not a guaranteed fix for every low-quality playback or buffering issue.
 
 To restore normal quality selection, disable the plugin, fully quit the app and reopen it.
 
 ## Manual installation
 
-For a local installation, place both `.js` files in iCloud Drive → Loon → Script and import a local `.plugin` file that uses relative script paths. The `.plugin` published in this repository uses online script URLs.
+For a local installation, place all three `.js` files in iCloud Drive → Loon → Script and import a local `.plugin` file that uses relative script paths. The `.plugin` published in this repository uses online script URLs.
 
 ## Privacy
 
 The published files contain no traffic captures, account tokens, subscription details, personal server configuration or private keys. The scripts add no network requests, analytics or uploads. They only process the existing HBO requests and playlists inside Loon.
 
-Normal logs include the device model and selected video/audio formats, but not request bodies, playback URLs or DRM data. Errors produce a generic message. The log prefixes `[HBO iPad Playback]` and `[HBO iPad Quality]` correspond to the two processing steps.
+Normal logs include the device model and selected video/audio formats, but not request bodies, playback URLs or DRM data. Errors produce a generic message. The log prefixes `[HBO iPad Playback]`, `[HBO iPad MainOnly]` and `[HBO iPad Quality]` identify the three processing steps.
 
 ## License
 

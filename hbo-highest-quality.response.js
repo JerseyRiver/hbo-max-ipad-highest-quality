@@ -2,7 +2,7 @@
 (function () {
   var prefix = '[HBO iPad Quality] ';
   try {
-    if (!/^https:\/\/[^/?#]+\/(?:[^?#]*\/)?hls\.m3u8(?:\?|$)/.test($request.url)) {
+    if (!/^https:\/\/[^/?#]+\/(?:[^?#]*\/)?(?:hls|[^/?#]+_fallback)\.m3u8(?:\?|$)/.test($request.url)) {
       $done({});
       return;
     }

@@ -1,8 +1,8 @@
 /* Lock HBO HLS to top video and one preferred audio format; retain its languages. */
 (function () {
-  var prefix = '[HBO MaxAV] ';
+  var prefix = '[HBO iPad Quality] ';
   try {
-    if (!/^https:\/\/[^/?#]+\/(?:[^?#]*\/)?hls\.m3u8(?:\?|$)/.test($request.url)) {
+    if (!/^https:\/\/[^/?#]+\/(?:[^?#]*\/)?(?:hls|[^/?#]+_fallback)\.m3u8(?:\?|$)/.test($request.url)) {
       $done({});
       return;
     }
