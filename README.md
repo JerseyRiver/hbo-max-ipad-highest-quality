@@ -1,59 +1,62 @@
 # HBO Max Highest Quality on iPad — Loon Plugin
 
-A Loon plugin for HBO Max on iPad when the app does not automatically select the highest available video quality. It rewrites the playback device identity and filters the HLS master playlist so the player uses the highest video tier returned by the server, with a preferred audio group such as Dolby Atmos.
+For HBO Max on iPad when the app does not automatically select the highest available quality. Version **1.2.0 is experimental**: it retains pre-roll choices and replaces the main program's video and audio segments with the highest available targets.
 
-If the playlist includes 4K, the plugin selects 4K. If the highest available tier is 1080p, it selects 1080p. It does not add quality tiers that the server has not provided.
+If the server provides 4K, the main video target is 4K. If its highest tier is 1080p, the target is 1080p. The plugin cannot create missing tiers, unlock subscription entitlements or bypass DRM.
 
-## Installation
+## Install or update
 
-Add this URL in Loon's plugin settings. Only one plugin is needed; the scripts are loaded automatically:
+Add this URL in Loon's plugin settings, or update your existing installation:
 
 ```
 https://raw.githubusercontent.com/JerseyRiver/hbo-max-ipad-highest-quality/main/HBO-Max-iPad-Highest-Quality.plugin
 ```
 
-1. Enable scripting and MITM in Loon. Install and trust the MITM certificate.
-2. Disable other plugins that rewrite HBO playback requests or master playlists. If you installed the earlier separate Apple TV identity, video/audio quality, or StartupTest plugins, disable them too.
-3. Fully quit HBO Max and reopen it before starting playback.
+1. Enable scripting and MITM; install and trust Loon's certificate.
+2. Disable other HBO playback or playlist rewrites, including earlier separate identity, quality and StartupTest plugins.
+3. Verify that the plugin version is 1.2.0. Fully quit HBO Max, reopen it and start a new playback session.
 
-## How it works
+One plugin loads three scripts automatically. No manual audio setting is needed for this experiment. To restore normal selection, disable the plugin and restart HBO Max.
 
-The plugin runs three steps during playback:
+## What changes
 
-1. **Rewrite the playback request.** For the specified `playbackInfo` endpoint, change the iPad device identity to Apple TV / tvOS to attempt to obtain additional video tiers. Existing account, session and DRM data are preserved.
-2. **Use the server-provided main-only fallback.** When `playbackInfo` includes a complete, validated HLS fallback containing the same main video, use that response instead of the concatenated promo/recap playlist. Its manifest, zero-based chapter timeline, DRM, CDN and SSAI metadata are kept together. This avoids manual jumps across the promo and recap boundaries. It also removes the separate recap from playback. If the fallback is missing or fails validation, the original response is retained.
-3. **Filter the master playlist.** Keep one video variant at the highest available resolution, together with one preferred audio group and its languages, audio descriptions and referenced subtitle groups. Removing lower video tiers prevents the player from selecting them.
+1. `hbo-playback.request.js` rewrites the playback request's device identity to Apple TV / tvOS to request additional tiers. Account, session and FairPlay data are preserved.
+2. `hbo-period-plan.response.js` records the original manifest URL and main chapter's asset ID, start and duration from `playbackInfo`. It leaves that response unchanged. **The main-only fallback introduced in 1.1.0 is no longer selected**: the observed fallback capped video at 720p.
+3. `hbo-period-quality.response.js` handles the master and media playlists. It keeps video resolution choices within the selected video encoding family and retains their audio groups. For each mapped media playlist, it substitutes only the main chapter with the highest target's segments, initialization information and encryption tags. Pre-roll and post-roll segments remain from the requested playlist. The main target is fixed even if the player selects a lower rendition.
 
-One plugin invokes three scripts at their respective stages. It does not modify player code or fake a bandwidth measurement.
+This is a playlist rewrite prepared before playback, not a timed command to the player. Main segments can be downloaded before the main program starts. The player still controls buffering, download timing, audio language and output-device processing.
 
-## Video and audio selection
+Pre-roll choices are retained, but unrestricted original adaptive selection is not guaranteed: video is limited to one encoding family, and variant metadata must advertise the main program's maximum resolution, codecs and bandwidth. That metadata can affect the player's initial selection. Audio playlists declare both their original and replacement codecs where needed.
 
-- Video: highest pixel count first. At the same resolution, prefer Dolby Vision Profile 5 → HEVC HDR → HEVC SDR → AVC, then select the variant with the highest average bitrate.
-- Audio: within the selected video format, prefer Dolby Atmos → EAC3 (Dolby Digital Plus) → AC3 (Dolby Digital) → AAC. Languages in the selected group are retained; languages exclusive to other groups may no longer be available.
-- Original playback URLs, session keys and referenced subtitle groups are preserved. Default subtitle language is not changed.
+## Selection and validation
 
-Audio selection is a format preference, not a guarantee of better perceived sound or lossless audio.
+- Main video: highest pixel count, then Dolby Vision Profile 5 → HEVC HDR → HEVC SDR → AVC, then preferred audio format and bitrate.
+- Main audio: prefer Atmos → EAC3 → AC3 → AAC within the selected video family. Map only matching language, associated language and accessibility role. If there is no matching target, retain that audio playlist. This is a format preference, not a claim of lossless or perceptually better sound.
+- Preserve referenced subtitle groups and session keys. Do not alter subtitle language or license requests.
+- Accept complete VOD playlists only. Validate the main chapter's boundary, asset path, duration and initialization section before replacement. Resolve relative URLs and implicit segment byte ranges. Leave unsupported, mismatched or failed responses unchanged.
 
-## Compatibility and limitations
+Offline checks against an actual 90-variant master and four media playlists verified a 3840×1920 main video target, same-language AAC-to-Atmos main replacement, unchanged pre/post-roll sections, byte ranges, caching and failure handling. These checks do **not** establish successful playback on iPad.
 
-This plugin targets the specified HBO Max playback endpoint and HLS master playlists on iPad. Compatibility with other devices, app versions and regions is not guaranteed. The Apple TV identity rewrite is experimental.
+## Experimental limitations
 
-An eligible subscription, supported content and a compatible device are still required. The plugin cannot turn a 1080p source into 4K, unlock subscription entitlements or bypass DRM.
+Switching AAC to EAC3/Atmos at a chapter boundary may be rejected by the iPad player despite discontinuity and codec declarations. Device identity rewriting and Dolby Vision support also depend on the client. Audio output still depends on the device and connected speakers or headphones.
 
-Locking the highest tier removes the player's lower-quality fallback and can increase startup time, seeking delays or buffering. If Atmos is available but the client cannot play it, the plugin does not automatically fall back to AAC; playback may fail or have no sound. The main-only fallback is an experimental workaround for promo/recap skip stalls; it has been checked against captured responses, but live playback and the quality tiers available in that fallback still require verification. This is not a guaranteed fix for every low-quality playback or buffering issue.
+The plugin does not change advertising decisions, skip controls or ad-blocking rules. It is not a proven fix for the observed skip stall. A playlist that fails validation remains original and may therefore stay below the highest quality. Unsupported formats, concurrent playback sessions and app/server changes can also prevent replacement.
 
-To restore normal quality selection, disable the plugin, fully quit the app and reopen it.
+Fetching a target media playlist can add startup latency. Forcing high quality can increase buffering and seek delays; this plugin does not increase network speed or change player buffer limits.
 
-## Manual installation
+## Local installation
 
-For a local installation, place all three `.js` files in iCloud Drive → Loon → Script and import a local `.plugin` file that uses relative script paths. The `.plugin` published in this repository uses online script URLs.
+Place `hbo-playback.request.js`, `hbo-period-plan.response.js` and `hbo-period-quality.response.js` in iCloud Drive → Loon → Script, then import the local plugin using relative script paths. The public plugin uses online URLs.
 
 ## Privacy
 
-The published files contain no traffic captures, account tokens, subscription details, personal server configuration or private keys. The scripts add no network requests, analytics or uploads. They only process the existing HBO requests and playlists inside Loon.
+Published files contain no captures, account tokens, private keys or server configuration. There are no analytics or uploads. The rewrite may fetch the server-provided highest media playlist from an allowed HBO CDN over verified HTTPS; it does not download extra video segments itself or copy request cookies into that fetch.
 
-Normal logs include the device model and selected video/audio formats, but not request bodies, playback URLs or DRM data. Errors produce a generic message. The log prefixes `[HBO iPad Playback]`, `[HBO iPad MainOnly]` and `[HBO iPad Quality]` identify the three processing steps.
+Loon's local persistent storage holds one current playback plan, including signed playback URLs and up to six cached target media playlists. A new valid playback response replaces the plan; expired data is removed when a later playlist request reads it (six-hour lifetime, not a background deletion timer). Disabling or uninstalling the plugin does not itself erase this storage. Remove the `HBO.iPad.PeriodPlan.v1` key from Loon's script storage to clear it immediately. Do not share the contents of that key.
+
+Logs report processing steps, resolution and format, without signed URLs, account details or DRM data. Prefixes: `[HBO iPad Playback]` and `[HBO iPad Period]`.
 
 ## License
 
-Created by **JerseyRiver**. MIT. See [LICENSE](LICENSE). This project is not affiliated with HBO, Apple or Loon.
+Created by **JerseyRiver**. MIT. See [LICENSE](LICENSE). Not affiliated with HBO, Apple or Loon.
